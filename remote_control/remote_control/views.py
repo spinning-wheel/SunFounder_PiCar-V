@@ -15,6 +15,7 @@ from .driver import camera, stream
 from picar import back_wheels, front_wheels
 from django.http import HttpResponse
 import picar
+from .picar_v_video_stream import Vilib
 
 is_setup = False
 
@@ -22,10 +23,9 @@ def setup():
 	global fw, bw, cam, SPEED, bw_status, is_setup
 	if is_setup == True:
 		return
-	from .picar_v_video_stream import Vilib
 	picar.setup()
-	db_file = "/home/pi/SunFounder_PiCar-V/remote_control/remote_control/driver/config"
-	fw = front_wheels.Front_Wheels(debug=False, db=db_file)
+	db_file = "/home/zilunpeng/spinning-wheel/SunFounder_PiCar-V/remote_control/remote_control/driver/config"
+	fw = front_wheels.Front_Wheels(debug=True, db=db_file)
 	bw = back_wheels.Back_Wheels(debug=False, db=db_file)
 	cam = camera.Camera(debug=False, db=db_file)
 	cam.ready()
@@ -116,6 +116,8 @@ def run(request):
 		if bw_status != 0:
 			bw.speed = SPEED
 		debug = "speed =", speed
+	if 'start_capture' in request.GET:
+		Vilib.camera_start_capture(fw, bw)
 	#host = stream.get_host().decode('utf-8').split(' ')[0]
 	host = get_ip()
 	return render_to_response("run.html", {'host': host})

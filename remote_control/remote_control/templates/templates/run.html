@@ -102,6 +102,17 @@
         xmlHttp.send( null );
         return xmlHttp.responseText;
       }
+      function start_capture(){
+        var xmlHttp  = new XMLHttpRequest();
+        var protocol  = window.location.protocol;
+        var host      = window.location.host;
+        var pathname  = window.location.pathname;
+        url = protocol + "//" + host + pathname + "?start_capture";
+        //document.getElementById("debug").innerHTML=url;
+        xmlHttp.open( "GET", url, false );
+        xmlHttp.send( null );
+        return xmlHttp.responseText;
+      }
       function keydown_event(key){
         if (event.repeat != undefined) {
           allowed = !event.repeat;
@@ -263,6 +274,8 @@
           <button class="mui-btn mui-btn--primary mui-btn--fab" onmousedown="set_speed('85')" id="button_opacity">4</button>
           <button class="mui-btn mui-btn--primary mui-btn--fab" onmousedown="set_speed('100')" id="button_opacity">5</button>
           <button class="mui-btn mui-btn--primary" onmousedown="toggle('div_appbar')" id="button_opacity">Fullscreen</button>
+          <button class="mui-btn mui-btn--primary" onmousedown="start_capture()" id="button_opacity">StartCapture</button>
+          <button class="mui-btn mui-btn--primary" onmousedown="stop_capture()" id="button_opacity">StopCapture</button>
         </div>
         <!-- Control Panel-->
         <!--Forward, Camera up button  ◤◥-->
