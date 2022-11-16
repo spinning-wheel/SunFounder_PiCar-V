@@ -113,6 +113,17 @@
         xmlHttp.send( null );
         return xmlHttp.responseText;
       }
+      function stop_capture(){
+        var xmlHttp  = new XMLHttpRequest();
+        var protocol  = window.location.protocol;
+        var host      = window.location.host;
+        var pathname  = window.location.pathname;
+        url = protocol + "//" + host + pathname + "?stop_capture";
+        //document.getElementById("debug").innerHTML=url;
+        xmlHttp.open( "GET", url, false );
+        xmlHttp.send( null );
+        return xmlHttp.responseText;
+      }
       function keydown_event(key){
         if (event.repeat != undefined) {
           allowed = !event.repeat;

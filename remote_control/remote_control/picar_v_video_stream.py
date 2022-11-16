@@ -58,7 +58,7 @@ class Vilib(object):
         Vilib.camera(should_capture)     
 
     @staticmethod
-    def camera(should_capture, front_wheel=None, back_wheel=None):
+    def camera(should_capture):
         camera = cv2.VideoCapture(Vilib.video_source)
         camera.set(3,320)
         camera.set(4,240)
@@ -71,21 +71,30 @@ class Vilib(object):
             Vilib.img_array[0] = img
             if should_capture:
                 timestamp = datetime.now().strftime("%Y-%m-%d-%H:%M:%S-%f")[:-3]
-                # file_name = timestamp + f'-turnOffset={front_wheel.}-'
-                cv2.imwrite(f'{img_storage_path}/{timestamp}.png', img)
+                cv2.imwrite(f'{Vilib.img_storage_path}/{timestamp}.png', img)
             time.sleep(0.5)
 
     @staticmethod
-    def camera_start_capture(front_wheel, back_wheel):
-        print(front_wheel)
-        print(back_wheel)
+    def camera_start_capture():
         # terminate worker_1 process
         Vilib.worker_carcam.terminate()
         Vilib.worker_carcam.join()
         Vilib.worker_carcam.close()
-        print('terminated worker_carcam')
+        print('terminated car cam process')
 
         Vilib.worker_carcam = Process(name='worker 2', target=Vilib.camera_clone, args=(True,))
+        Vilib.worker_carcam.daemon = True
+        Vilib.worker_carcam.start()
+        print('started new car cam process')
+
+    @staticmethod
+    def camera_stop_capture():
+        Vilib.worker_carcam.terminate()
+        Vilib.worker_carcam.join()
+        Vilib.worker_carcam.close()
+        print('terminated car cam process')
+
+        Vilib.worker_carcam = Process(name='worker 2', target=Vilib.camera_clone, args=(False,))
         Vilib.worker_carcam.daemon = True
         Vilib.worker_carcam.start()
         print('started new car cam process')

@@ -10,6 +10,8 @@
 **********************************************************************
 '''
 
+import cv2
+from datetime import datetime
 from django.shortcuts import render_to_response
 from .driver import camera, stream
 from picar import back_wheels, front_wheels
@@ -18,9 +20,10 @@ import picar
 from .picar_v_video_stream import Vilib
 
 is_setup = False
+is_capturing = False
 
 def setup():
-	global fw, bw, cam, SPEED, bw_status, is_setup
+	global fw, bw, cam, SPEED, bw_status, is_setup, is_capturing
 	if is_setup == True:
 		return
 	picar.setup()
@@ -37,6 +40,7 @@ def setup():
 	SPEED = 60
 	bw_status = 0
 	is_setup = True
+	is_capturing = False
 
 #test.start()
 #print(stream.start())
@@ -59,7 +63,7 @@ def home(request):
 	return render_to_response("base.html")
 
 def run(request):
-	global SPEED, bw_status
+	global SPEED, bw_status, is_capturing
 	debug = ''
 	if 'action' in request.GET:
 		action = request.GET['action']
@@ -106,6 +110,23 @@ def run(request):
 			cam.turn_up(20)
 		elif action == 'camdown':
 			cam.turn_down(20)	
+
+		if is_capturing:
+			timestamp = datetime.now().strftime("%Y-%m-%d-%H:%M:%S-%f")[:-3]
+			cur_speed = bw._speed
+			if action == 'fwleft':
+				left_angle = fw._angle['left']
+				file_name = timestamp + f'-angle={left_angle}-speed={cur_speed}-bwstatus={bw_status}'
+				cv2.imwrite(f'{Vilib.img_storage_path}/{file_name}.png', Vilib.img_array[0])
+			elif action == 'fwright':
+				right_angle = fw._angle['right']
+				file_name = timestamp + f'-angle={right_angle}-speed={cur_speed}-bwstatus={bw_status}'
+				cv2.imwrite(f'{Vilib.img_storage_path}/{file_name}.png', Vilib.img_array[0])
+			elif action == 'fwstraight':
+				straight_angle = fw._angle['straight']
+				file_name = timestamp + f'-angle={straight_angle}-speed={cur_speed}-bwstatus={bw_status}'
+				cv2.imwrite(f'{Vilib.img_storage_path}/{file_name}.png', Vilib.img_array[0])
+
 	if 'speed' in request.GET:
 		speed = int(request.GET['speed'])
 		if speed < 0:
@@ -117,7 +138,11 @@ def run(request):
 			bw.speed = SPEED
 		debug = "speed =", speed
 	if 'start_capture' in request.GET:
-		Vilib.camera_start_capture(fw, bw)
+		Vilib.camera_start_capture()
+		is_capturing = True
+	if 'stop_capture' in request.GET:
+		Vilib.camera_stop_capture()
+		is_capturing = False
 	#host = stream.get_host().decode('utf-8').split(' ')[0]
 	host = get_ip()
 	return render_to_response("run.html", {'host': host})
@@ -152,6 +177,7 @@ def cali(request):
 		elif action == 'fwcalileft':
 			print('"%s" command received' % action)
 			fw.cali_left()
+			print(fw.cali_turning_offset)
 		elif action == 'fwcaliright':
 			print('"%s" command received' % action)
 			fw.cali_right()
