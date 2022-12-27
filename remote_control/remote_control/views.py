@@ -10,7 +10,10 @@
 **********************************************************************
 '''
 
+import ast
 import cv2
+import time
+import requests
 from datetime import datetime
 from django.shortcuts import render_to_response
 from .driver import camera, stream
@@ -143,6 +146,42 @@ def run(request):
 	if 'stop_capture' in request.GET:
 		Vilib.camera_stop_capture()
 		is_capturing = False
+	if 'start_model_control' in request.GET:
+		bw.speed = 40
+		start_time = time.time()
+		while True:
+			if len(Vilib.img_array) == 0:
+				print('no image in the queue. Stop model control.')
+				break
+			cur_image = Vilib.img_array[0]
+			_, cur_img_encoded = cv2.imencode('.jpg', cur_image)
+			response = requests.post('http://172.20.10.3:8686/predict', data=cur_img_encoded.tostring(), headers={'content-type': 'image/jpeg'})
+			if response.status_code != 200:
+				print('request was not sent successfully.')
+				break
+
+			model_pred_dict = ast.literal_eval(response.content.decode('utf-8'))
+
+			if model_pred_dict['model_pred_left'] >= 0.97:
+				fw.turn_left()
+				model_action = 'left'
+			elif model_pred_dict['model_pred_right'] >= 0.97:
+				fw.turn_right()
+				model_action = 'right'
+			else:
+				model_action = 'no_action'
+			time.sleep(0.25)
+			fw.turn_straight()
+			bw.forward()
+			bw_status = 1
+
+			timestamp = datetime.now().strftime("%Y-%m-%d-%H:%M:%S-%f")[:-3]
+			file_name = timestamp + f'-model_action={model_action}'
+			cv2.imwrite(f'{Vilib.img_storage_path}/{file_name}.png', cur_image)
+			if time.time() - start_time > 120:
+				print('more than 120 seconds. Stop.')
+				break
+			time.sleep(0.3)
 	#host = stream.get_host().decode('utf-8').split(' ')[0]
 	host = get_ip()
 	return render_to_response("run.html", {'host': host})

@@ -81,6 +81,7 @@
       var allowed = true;
 
       function run_action(value){
+        // var startTime = new Date();
         var xmlHttp  = new XMLHttpRequest();
         var protocol  = window.location.protocol;
         var host      = window.location.host;
@@ -89,6 +90,8 @@
         //document.getElementById("debug").innerHTML=url;
         xmlHttp.open( "GET", url, false );
         xmlHttp.send( null );
+        // var endTime = new Date();
+        // console.log('took' + Math.round(endTime - startTime) + ' ms')
         return xmlHttp.responseText;
       }
       function set_speed(value){
@@ -119,6 +122,17 @@
         var host      = window.location.host;
         var pathname  = window.location.pathname;
         url = protocol + "//" + host + pathname + "?stop_capture";
+        //document.getElementById("debug").innerHTML=url;
+        xmlHttp.open( "GET", url, false );
+        xmlHttp.send( null );
+        return xmlHttp.responseText;
+      }
+      function start_model_control(){
+        var xmlHttp  = new XMLHttpRequest();
+        var protocol  = window.location.protocol;
+        var host      = window.location.host;
+        var pathname  = window.location.pathname;
+        url = protocol + "//" + host + pathname + "?start_model_control";
         //document.getElementById("debug").innerHTML=url;
         xmlHttp.open( "GET", url, false );
         xmlHttp.send( null );
@@ -287,6 +301,7 @@
           <button class="mui-btn mui-btn--primary" onmousedown="toggle('div_appbar')" id="button_opacity">Fullscreen</button>
           <button class="mui-btn mui-btn--primary" onmousedown="start_capture()" id="button_opacity">StartCapture</button>
           <button class="mui-btn mui-btn--primary" onmousedown="stop_capture()" id="button_opacity">StopCapture</button>
+          <button class="mui-btn mui-btn--primary" onmousedown="start_model_control()" id="button_opacity">StartMC</button>
         </div>
         <!-- Control Panel-->
         <!--Forward, Camera up button  ◤◥-->
